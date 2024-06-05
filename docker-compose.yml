@@ -1,0 +1,30 @@
+version: "3.8"
+services:
+  db:
+    container_name: "db"
+    image: "postgres:16.3-alpine"
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - custom
+  web:
+    container_name: "web"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8000:8000"
+    networks:
+      - custom
+    depends_on:
+      - db
+
+networks:
+  custom:
+    driver: bridge
