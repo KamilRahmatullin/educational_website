@@ -3,7 +3,7 @@ from fastapi import FastAPI, APIRouter
 
 from education.handlers import education_router
 
-app = FastAPI(title='educational-website')
+app = FastAPI(title="educational-website")
 
 main_router = APIRouter()
 main_router.include_router(education_router)
