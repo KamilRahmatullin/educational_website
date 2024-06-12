@@ -1,9 +1,20 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI, APIRouter
 
+from core.models import Base, db_helper
 from education.handlers import education_router
 
-app = FastAPI(title="educational-website")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with db_helper.engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+
+
+app = FastAPI(title="educational-website", lifespan=lifespan)
 
 main_router = APIRouter()
 main_router.include_router(education_router)
