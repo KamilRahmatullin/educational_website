@@ -18,4 +18,4 @@ class UserRelationMixin:
 
     @declared_attr
     def user(cls) -> Mapped["User"]:
-        return relationship("users.id", back_populates=cls._user_back_populates)
+        return relationship("User", back_populates=cls._user_back_populates)
