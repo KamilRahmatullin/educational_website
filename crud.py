@@ -4,7 +4,7 @@ from sqlalchemy import select, Result
 from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models import db_helper, User, Profile, Post
+from core.models import db_helper, User, Profile, Post, Order, Product, OrderProductAssociation
 
 
 async def create_user(session: AsyncSession, username: str):
@@ -89,6 +89,78 @@ async def get_posts_with_authors(session: AsyncSession):
     return posts
 
 
+async def create_order(session: AsyncSession, promocode: int | None = None) -> Order:
+    order = Order(promocode=promocode)
+    session.add(order)
+    await session.commit()
+    return order
+
+
+async def create_product(session: AsyncSession, name: str, description: str, price: int) -> Product:
+    product = Product(name=name, description=description, price=price)
+    session.add(product)
+    await session.commit()
+    return product
+
+
+async def get_orders_with_products(session: AsyncSession):
+    stmt = select(Order).options(
+        selectinload(Order.products_details).joinedload(OrderProductAssociation.product)
+    ).order_by(Order.id)
+    return list(await session.scalars(stmt))
+
+
+async def create_orders_and_products(session: AsyncSession):
+    order_one = await create_order(session)
+    order_promo = await create_order(session=session, promocode=15)
+
+    mouse = await create_product(session=session, name="Mouse", description="Great gaming mouse", price=123)
+    keyboard = await create_product(session=session, name="Keyboard", description="Great gaming keyboard", price=321)
+    display = await create_product(session=session, name="Display", description="Office display", price=299)
+
+    order_one = await session.scalar(
+        select(Order).where(Order.id == order_one.id).options(selectinload(Order.products)))
+    order_promo = await session.scalar(
+        select(Order).where(Order.id == order_promo.id).options(selectinload(Order.products)))
+
+    order_one.products.append(mouse)
+    order_one.products.append(keyboard)
+    order_promo.products.append(keyboard)
+    order_promo.products.append(display)
+    order_promo.products.append(mouse)
+
+    await session.commit()
+
+
+async def demo_get_orders_with_products_through_secondary(session: AsyncSession):
+    orders = await get_orders_with_products(session)
+    for order in orders:
+        print('*' * 10)
+        print(order)
+        for order_product_details in order.products_details:  # type: OrderProductAssociation
+            print('-', order_product_details.product.name, order_product_details.product.price)
+        print('*' * 10)
+    return orders
+
+
+async def give_gift_to_order(session: AsyncSession):
+    orders = await demo_get_orders_with_products_through_secondary(session)
+    gift_product = await create_product(
+        session=session,
+        name="Gift",
+        description="A gift for you",
+        price=1000,
+    )
+    for order in orders:
+        order.products_details.append(
+            OrderProductAssociation(
+                count=1,
+                product=gift_product
+            )
+        )
+    await session.commit()
+
+
 async def main_relations(session: AsyncSession):
     await show_users_with_profiles(session)
     await create_posts(session, 1, 'SQLA 3.0', 'SQLA 3.1', 'SQLA 3.2')
@@ -97,7 +169,9 @@ async def main_relations(session: AsyncSession):
 
 
 async def demo_m2m(session: AsyncSession):
-    pass
+    await demo_get_orders_with_products_through_secondary(session)
+
+    #  await give_gift_to_order(session)
 
 
 async def main():
