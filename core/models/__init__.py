@@ -5,8 +5,8 @@ from .user import User
 from .post import Post
 from .profile import Profile
 from .order import Order
-from .order_product_association import order_product_association_table
+from .order_product_association import OrderProductAssociation
 
 __all__ = (
     "Base", "Product", "db_helper", "DatabaseHelper", "User", "Post", "Profile", "Order",
-    "order_product_association_table")
+    "OrderProductAssociation")
