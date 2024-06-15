@@ -65,7 +65,7 @@ async def get_users_with_posts(session: AsyncSession):
 
     # Create a SQLAlchemy select statement for User, with selectinload for 'posts' relationship
     stmt = select(User).options(
-        selectinload(User.posts)).order_by(User.id)
+        selectinload(User.posts)).order_by(User.id)  # many posts to one user
 
     # Execute the SQL statement and get the Result object
     result: Result = await session.execute(stmt)
@@ -84,15 +84,25 @@ async def get_users_with_posts(session: AsyncSession):
 
 async def get_posts_with_authors(session: AsyncSession):
     stmt = select(Post).options(
-        joinedload(Post.user)).order_by(Post.id)  # many to one
+        joinedload(Post.user)).order_by(Post.id)  # one user to many posts
     posts = await session.scalars(stmt)
     return posts
 
 
+async def main_relations(session: AsyncSession):
+    await show_users_with_profiles(session)
+    await create_posts(session, 1, 'SQLA 3.0', 'SQLA 3.1', 'SQLA 3.2')
+    await get_users_with_posts(session)
+    await get_posts_with_authors(session)
+
+
+async def demo_m2m(session: AsyncSession):
+    pass
+
+
 async def main():
     async with db_helper.session_factory() as session:
-        await get_posts_with_authors(session=session)
-        # await create_posts(session, 1, 'SQLA 3.0')
+        await demo_m2m(session)
 
 
 if __name__ == '__main__':
