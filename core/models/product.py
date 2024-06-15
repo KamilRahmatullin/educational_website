@@ -14,12 +14,7 @@ class Product(Base):
     description: Mapped[str]
     price: Mapped[int]
 
-    # orders: Mapped[list["Order"]] = relationship(
-    #     "Order",
-    #     secondary="order_product_association",
-    #     back_populates="products"
-    # )
-
+    # Define a relationship with the OrderProductAssociation class through product
     orders_details: Mapped[list["OrderProductAssociation"]] = relationship(back_populates="product")
 
     def __str__(self):

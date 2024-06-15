@@ -18,12 +18,8 @@ class Order(Base):
         server_default=func.now(),
         default=datetime.now()
     )
-    # products: Mapped[list["Product"]] = relationship(
-    #     "Product",
-    #     secondary="order_product_association",
-    #     back_populates="orders"
-    # )
 
+    # Define a relationship with the OrderProductAssociation class through order
     products_details: Mapped[list["OrderProductAssociation"]] = relationship(back_populates="order")
 
     def __str__(self):
