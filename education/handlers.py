@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
 from api_v1 import router_v1
+from core.config import settings
 from education.items_views import items_router
 from users.views import users_router
-from core.config import settings
 
 education_router = APIRouter()
 
